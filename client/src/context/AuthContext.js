@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import defaultUsers from '../data/users.json';
 
 const USERS_STORAGE_KEY = 'pris.auth.users';
@@ -34,9 +34,7 @@ const loadUsersFromStorage = () => {
     const stored = localStorage.getItem(USERS_STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) {
-        return parsed;
-      }
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch (error) {
     console.warn('Failed to parse stored users, falling back to defaults.', error);
@@ -49,9 +47,7 @@ const loadCurrentUserFromStorage = () => {
     const stored = localStorage.getItem(CURRENT_USER_STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (parsed && parsed.email && parsed.name) {
-        return parsed;
-      }
+      if (parsed && parsed.email && parsed.name) return parsed;
     }
   } catch (error) {
     console.warn('Failed to parse stored current user, ignoring saved session.', error);
@@ -76,7 +72,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [currentUser]);
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     setIsLoading(true);
     try {
       const normalizedEmail = toLowerTrimmed(email);
@@ -97,9 +93,9 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [users]);
 
-  const signup = async ({ name, email, password }) => {
+  const signup = useCallback(async ({ name, email, password }) => {
     setIsLoading(true);
     try {
       const normalizedEmail = toLowerTrimmed(email);
@@ -126,24 +122,23 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [users]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setCurrentUser(null);
-  };
+  }, []);
 
   const value = useMemo(
-  () => ({
-    currentUser,
-    isAuthenticated: Boolean(currentUser),
-    isLoading,
-    login,
-    signup,
-    logout
-  }),
-  [currentUser, isLoading, login, signup, logout]
-);
-
+    () => ({
+      currentUser,
+      isAuthenticated: Boolean(currentUser),
+      isLoading,
+      login,
+      signup,
+      logout
+    }),
+    [currentUser, isLoading, login, signup, logout]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
@@ -155,5 +150,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-
