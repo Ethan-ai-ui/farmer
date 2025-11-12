@@ -48,7 +48,7 @@ const LandingPage = () => {
     setTipSaved(false);
 
     try {
-      const apiUrl = 'http://localhost:5000/api/chat';
+      const apiUrl = 'https://farmer-8aje.onrender.com/api/chat';
       const res = await axios.post(apiUrl, { message: query });
       const answer = res.data.response;
       setResponse(answer);
